@@ -608,6 +608,7 @@ local function Section(name)
     return label
 end
 
+
 local function Toggle(name, callback)
     local button = Instance.new("TextButton")
     button.Size = UDim2.new(1, -5, 0, 29)
@@ -627,21 +628,28 @@ local function Toggle(name, callback)
 
     button.MouseButton1Click:Connect(function()
         enabled = not enabled
+
         button.Text = name .. (enabled and "     [ ON ]" or "     [ OFF ]")
         button.BackgroundColor3 = enabled and C.Red or C.Card
-        if callback then callback(enabled) end
+
+        if callback then
+            callback(enabled)
+        end
     end)
 
     return {
         Button = button,
+
         SetVisible = function(value)
             button.Visible = value
         end,
+
         Get = function()
             return enabled
         end
     }
 end
+
 
 local function Slider(name, minValue, maxValue, defaultValue)
     local holder = Instance.new("Frame")
@@ -803,17 +811,32 @@ local function Palette(name)
     Update()
 end
 
+
 --==================================================
 -- AIMBOTS
 --==================================================
 
 Section("AIMBOTS")
 
-local mainAim = Toggle("Aimbot")
-local aimForce = Slider("Força do Aimbot", 1, 100, 50)
-local aimFov = Toggle("FOV Aimbot")
-local aimFovSize = Slider("Tamanho do FOV", 1, 500, 100)
-local hitbox = Choice("Hitbox Aim", {
+-- AIMBOT PRINCIPAL
+local aimForce, aimFov, aimFovSize, hitbox
+
+local mainAim = Toggle("Aimbot", function(active)
+    aimForce.SetVisible(active)
+    aimFov.SetVisible(active)
+    hitbox.SetVisible(active)
+    aimFovSize.SetVisible(active and aimFov.Get())
+end)
+
+aimForce = Slider("Força do Aimbot", 1, 100, 50)
+
+aimFov = Toggle("FOV Aimbot", function(active)
+    aimFovSize.SetVisible(mainAim.Get() and active)
+end)
+
+aimFovSize = Slider("Tamanho do FOV", 1, 500, 100)
+
+hitbox = Choice("Hitbox Aim", {
     "Cabeça", "Peito", "Pernas"
 })
 
@@ -822,53 +845,40 @@ aimFov.SetVisible(false)
 aimFovSize.SetVisible(false)
 hitbox.SetVisible(false)
 
-mainAim.Button.MouseButton1Click:Connect(function()
-    local active = mainAim.Get()
-    aimForce.SetVisible(active)
-    aimFov.SetVisible(active)
-    hitbox.SetVisible(active)
-    aimFovSize.SetVisible(active and aimFov.Get())
-end)
-
-aimFov.Button.MouseButton1Click:Connect(function()
-    aimFovSize.SetVisible(mainAim.Get() and aimFov.Get())
-end)
-
 -- LEGIT AIM
-local legitAim = Toggle("Legit Aim")
-local legitFov = Toggle("FOV Legit Aim")
-local legitSize = Slider("Tamanho FOV Legit", 1, 500, 100)
+local legitFov, legitSize
 
-legitFov.SetVisible(false)
-legitSize.SetVisible(false)
-
-legitAim.Button.MouseButton1Click:Connect(function()
-    local active = legitAim.Get()
+local legitAim = Toggle("Legit Aim", function(active)
     legitFov.SetVisible(active)
     legitSize.SetVisible(active and legitFov.Get())
 end)
 
-legitFov.Button.MouseButton1Click:Connect(function()
-    legitSize.SetVisible(legitAim.Get() and legitFov.Get())
+legitFov = Toggle("FOV Legit Aim", function(active)
+    legitSize.SetVisible(legitAim.Get() and active)
 end)
 
+legitSize = Slider("Tamanho FOV Legit", 1, 500, 100)
+
+legitFov.SetVisible(false)
+legitSize.SetVisible(false)
+
 -- HARD LOCK
-local hardLock = Toggle("Hard Lock")
-local hardFov = Toggle("FOV Hard Lock")
-local hardSize = Slider("Tamanho FOV Hard Lock", 1, 500, 100)
+local hardFov, hardSize
 
-hardFov.SetVisible(false)
-hardSize.SetVisible(false)
-
-hardLock.Button.MouseButton1Click:Connect(function()
-    local active = hardLock.Get()
+local hardLock = Toggle("Hard Lock", function(active)
     hardFov.SetVisible(active)
     hardSize.SetVisible(active and hardFov.Get())
 end)
 
-hardFov.Button.MouseButton1Click:Connect(function()
-    hardSize.SetVisible(hardLock.Get() and hardFov.Get())
+hardFov = Toggle("FOV Hard Lock", function(active)
+    hardSize.SetVisible(hardLock.Get() and active)
 end)
+
+hardSize = Slider("Tamanho FOV Hard Lock", 1, 500, 100)
+
+hardFov.SetVisible(false)
+hardSize.SetVisible(false)
+
 
 --==================================================
 -- OPÇÕES EXTRAS
