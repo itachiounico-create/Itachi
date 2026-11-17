@@ -538,23 +538,23 @@ end
 Players.PlayerAdded:Connect(UpdatePlayerCount)
 Players.PlayerRemoving:Connect(UpdatePlayerCount)
 
+
 --==================================================
--- AIMBOT: ÁREA VISUAL
+-- AIMBOT | INTERFACE V1
 --==================================================
 
 local aimbot = CreatePage("Aimbot")
 
 local aimTitle = Label(
-    aimbot,
-    "AIMBOT",
+    aimbot, "AIMBOT",
     UDim2.new(1, -20, 0, 25),
     UDim2.fromOffset(10, 8),
-    Enum.Font.GothamBold,
-    C.White
+    Enum.Font.GothamBold, C.White
 )
 aimTitle.ZIndex = 5
 aimTitle.TextSize = 14
 
+-- ÁREA DAS OPÇÕES
 local optionsArea = Instance.new("Frame")
 optionsArea.Name = "OptionsArea"
 optionsArea.Size = UDim2.new(1, -132, 1, -43)
@@ -564,20 +564,383 @@ optionsArea.BackgroundTransparency = 0.88
 optionsArea.BorderSizePixel = 0
 optionsArea.ZIndex = 5
 optionsArea.Parent = aimbot
-
 Round(optionsArea, 8)
 Border(optionsArea, 0.85)
 
 local optionsTitle = Label(
-    optionsArea,
-    "OPÇÕES",
+    optionsArea, "OPÇÕES",
     UDim2.new(1, -12, 0, 22),
-    UDim2.fromOffset(8, 5),
-    Enum.Font.GothamBold,
-    C.Gray
+    UDim2.fromOffset(8, 4),
+    Enum.Font.GothamBold, C.Gray
 )
-optionsTitle.ZIndex = 6
+optionsTitle.ZIndex = 7
 optionsTitle.TextSize = 10
+
+local scroll = Instance.new("ScrollingFrame")
+scroll.Name = "OptionsScroll"
+scroll.Size = UDim2.new(1, -8, 1, -30)
+scroll.Position = UDim2.fromOffset(4, 27)
+scroll.BackgroundTransparency = 1
+scroll.BorderSizePixel = 0
+scroll.ScrollBarThickness = 2
+scroll.ScrollBarImageColor3 = C.BrightRed
+scroll.AutomaticCanvasSize = Enum.AutomaticSize.Y
+scroll.CanvasSize = UDim2.new(0, 0, 0, 0)
+scroll.ZIndex = 6
+scroll.Parent = optionsArea
+
+local list = Instance.new("UIListLayout")
+list.Padding = UDim.new(0, 5)
+list.SortOrder = Enum.SortOrder.LayoutOrder
+list.Parent = scroll
+
+local function Section(name)
+    local label = Instance.new("TextLabel")
+    label.Size = UDim2.new(1, -5, 0, 23)
+    label.BackgroundTransparency = 1
+    label.Text = name
+    label.TextColor3 = C.BrightRed
+    label.TextSize = 11
+    label.Font = Enum.Font.GothamBold
+    label.TextXAlignment = Enum.TextXAlignment.Left
+    label.ZIndex = 7
+    label.Parent = scroll
+    return label
+end
+
+local function Toggle(name, callback)
+    local button = Instance.new("TextButton")
+    button.Size = UDim2.new(1, -5, 0, 29)
+    button.BackgroundColor3 = C.Card
+    button.BackgroundTransparency = 0.55
+    button.BorderSizePixel = 0
+    button.Text = name .. "     [ OFF ]"
+    button.TextColor3 = C.White
+    button.TextSize = 10
+    button.Font = Enum.Font.GothamMedium
+    button.ZIndex = 7
+    button.Parent = scroll
+    Round(button, 6)
+    Border(button, 0.85)
+
+    local enabled = false
+
+    button.MouseButton1Click:Connect(function()
+        enabled = not enabled
+        button.Text = name .. (enabled and "     [ ON ]" or "     [ OFF ]")
+        button.BackgroundColor3 = enabled and C.Red or C.Card
+        if callback then callback(enabled) end
+    end)
+
+    return {
+        Button = button,
+        SetVisible = function(value)
+            button.Visible = value
+        end,
+        Get = function()
+            return enabled
+        end
+    }
+end
+
+local function Slider(name, minValue, maxValue, defaultValue)
+    local holder = Instance.new("Frame")
+    holder.Size = UDim2.new(1, -5, 0, 43)
+    holder.BackgroundColor3 = C.Card
+    holder.BackgroundTransparency = 0.65
+    holder.BorderSizePixel = 0
+    holder.ZIndex = 7
+    holder.Parent = scroll
+    Round(holder, 6)
+
+    local value = defaultValue
+
+    local label = Instance.new("TextLabel")
+    label.Size = UDim2.new(1, -12, 0, 17)
+    label.Position = UDim2.fromOffset(6, 2)
+    label.BackgroundTransparency = 1
+    label.TextColor3 = C.White
+    label.TextSize = 9
+    label.Font = Enum.Font.Gotham
+    label.TextXAlignment = Enum.TextXAlignment.Left
+    label.ZIndex = 8
+    label.Parent = holder
+
+    local bar = Instance.new("TextButton")
+    bar.Size = UDim2.new(1, -14, 0, 8)
+    bar.Position = UDim2.fromOffset(7, 27)
+    bar.BackgroundColor3 = Color3.fromRGB(55, 55, 60)
+    bar.BorderSizePixel = 0
+    bar.Text = ""
+    bar.AutoButtonColor = false
+    bar.ZIndex = 8
+    bar.Parent = holder
+    Round(bar, 5)
+
+    local fill = Instance.new("Frame")
+    fill.Size = UDim2.new(0, 0, 1, 0)
+    fill.BackgroundColor3 = C.BrightRed
+    fill.BorderSizePixel = 0
+    fill.ZIndex = 9
+    fill.Parent = bar
+    Round(fill, 5)
+
+    local dragging = false
+
+    local function Update(inputX)
+        local width = bar.AbsoluteSize.X
+        local start = bar.AbsolutePosition.X
+        local percent = math.clamp((inputX - start) / width, 0, 1)
+
+        value = math.floor(minValue + (maxValue - minValue) * percent)
+        fill.Size = UDim2.new(percent, 0, 1, 0)
+        label.Text = name .. ": " .. value
+    end
+
+    label.Text = name .. ": " .. value
+    fill.Size = UDim2.new(
+        (value - minValue) / (maxValue - minValue), 0, 1, 0
+    )
+
+    bar.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.Touch
+        or input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = true
+            Update(input.Position.X)
+        end
+    end)
+
+    UIS.InputChanged:Connect(function(input)
+        if dragging and (
+            input.UserInputType == Enum.UserInputType.Touch
+            or input.UserInputType == Enum.UserInputType.MouseMovement
+        ) then
+            Update(input.Position.X)
+        end
+    end)
+
+    UIS.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.Touch
+        or input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = false
+        end
+    end)
+
+    return {
+        Holder = holder,
+        Get = function() return value end,
+        SetVisible = function(v) holder.Visible = v end
+    }
+end
+
+local function Choice(name, choices)
+    local index = 1
+
+    local button = Instance.new("TextButton")
+    button.Size = UDim2.new(1, -5, 0, 29)
+    button.BackgroundColor3 = C.Card
+    button.BackgroundTransparency = 0.55
+    button.BorderSizePixel = 0
+    button.TextColor3 = C.White
+    button.TextSize = 10
+    button.Font = Enum.Font.Gotham
+    button.ZIndex = 7
+    button.Parent = scroll
+    Round(button, 6)
+    Border(button, 0.85)
+
+    local function Update()
+        button.Text = name .. ": " .. choices[index]
+    end
+
+    button.MouseButton1Click:Connect(function()
+        index = index % #choices + 1
+        Update()
+    end)
+
+    Update()
+
+    return {
+        Holder = button,
+        SetVisible = function(v) button.Visible = v end
+    }
+end
+
+local paletteColors = {
+    Color3.fromRGB(255, 0, 0),
+    Color3.fromRGB(180, 0, 255),
+    Color3.fromRGB(0, 170, 255),
+    Color3.fromRGB(0, 255, 120),
+    Color3.fromRGB(255, 255, 255),
+    Color3.fromRGB(255, 180, 0)
+}
+
+local function Palette(name)
+    local index = 1
+
+    local button = Instance.new("TextButton")
+    button.Size = UDim2.new(1, -5, 0, 29)
+    button.BackgroundColor3 = paletteColors[index]
+    button.BackgroundTransparency = 0.15
+    button.BorderSizePixel = 0
+    button.TextColor3 = Color3.new(1, 1, 1)
+    button.TextSize = 10
+    button.Font = Enum.Font.GothamBold
+    button.ZIndex = 7
+    button.Parent = scroll
+    Round(button, 6)
+
+    local function Update()
+        button.BackgroundColor3 = paletteColors[index]
+        button.Text = name .. "  •  COR " .. index
+    end
+
+    button.MouseButton1Click:Connect(function()
+        index = index % #paletteColors + 1
+        Update()
+    end)
+
+    Update()
+end
+
+--==================================================
+-- AIMBOTS
+--==================================================
+
+Section("AIMBOTS")
+
+local mainAim = Toggle("Aimbot")
+local aimForce = Slider("Força do Aimbot", 1, 100, 50)
+local aimFov = Toggle("FOV Aimbot")
+local aimFovSize = Slider("Tamanho do FOV", 1, 500, 100)
+local hitbox = Choice("Hitbox Aim", {
+    "Cabeça", "Peito", "Pernas"
+})
+
+aimForce.SetVisible(false)
+aimFov.SetVisible(false)
+aimFovSize.SetVisible(false)
+hitbox.SetVisible(false)
+
+mainAim.Button.MouseButton1Click:Connect(function()
+    local active = mainAim.Get()
+    aimForce.SetVisible(active)
+    aimFov.SetVisible(active)
+    hitbox.SetVisible(active)
+    aimFovSize.SetVisible(active and aimFov.Get())
+end)
+
+aimFov.Button.MouseButton1Click:Connect(function()
+    aimFovSize.SetVisible(mainAim.Get() and aimFov.Get())
+end)
+
+-- LEGIT AIM
+local legitAim = Toggle("Legit Aim")
+local legitFov = Toggle("FOV Legit Aim")
+local legitSize = Slider("Tamanho FOV Legit", 1, 500, 100)
+
+legitFov.SetVisible(false)
+legitSize.SetVisible(false)
+
+legitAim.Button.MouseButton1Click:Connect(function()
+    local active = legitAim.Get()
+    legitFov.SetVisible(active)
+    legitSize.SetVisible(active and legitFov.Get())
+end)
+
+legitFov.Button.MouseButton1Click:Connect(function()
+    legitSize.SetVisible(legitAim.Get() and legitFov.Get())
+end)
+
+-- HARD LOCK
+local hardLock = Toggle("Hard Lock")
+local hardFov = Toggle("FOV Hard Lock")
+local hardSize = Slider("Tamanho FOV Hard Lock", 1, 500, 100)
+
+hardFov.SetVisible(false)
+hardSize.SetVisible(false)
+
+hardLock.Button.MouseButton1Click:Connect(function()
+    local active = hardLock.Get()
+    hardFov.SetVisible(active)
+    hardSize.SetVisible(active and hardFov.Get())
+end)
+
+hardFov.Button.MouseButton1Click:Connect(function()
+    hardSize.SetVisible(hardLock.Get() and hardFov.Get())
+end)
+
+--==================================================
+-- OPÇÕES EXTRAS
+--==================================================
+
+Section("OPÇÕES EXTRAS")
+
+local edge = Toggle("Edge Indicator")
+local edgeSize = Slider("Tamanho do círculo das setas", 1, 500, 150)
+local edgeThickness = Slider("Espessura das setas", 1, 10, 2)
+
+edgeSize.SetVisible(false)
+edgeThickness.SetVisible(false)
+
+edge.Button.MouseButton1Click:Connect(function()
+    local active = edge.Get()
+    edgeSize.SetVisible(active)
+    edgeThickness.SetVisible(active)
+end)
+
+local lockLine = Toggle("Lock-Line")
+
+--==================================================
+-- CORES
+--==================================================
+
+Section("CORES")
+
+Palette("Cores do FOV")
+Palette("Cores da LINE")
+Palette("Cores das Setas")
+
+--==================================================
+-- PERSONAGEM | PRÉVIA
+--==================================================
+
+local previewArea = Instance.new("Frame")
+previewArea.Name = "CharacterPreview"
+previewArea.Size = UDim2.new(0, 112, 1, -43)
+previewArea.Position = UDim2.new(1, -120, 0, 36)
+previewArea.BackgroundColor3 = C.Card
+previewArea.BackgroundTransparency = 0.88
+previewArea.BorderSizePixel = 0
+previewArea.ClipsDescendants = true
+previewArea.ZIndex = 5
+previewArea.Parent = aimbot
+
+Round(previewArea, 8)
+local previewBorder = Border(previewArea, 0.65)
+previewBorder.Thickness = 0.8
+
+local previewTitle = Label(
+    previewArea, "PERSONAGEM",
+    UDim2.new(1, -8, 0, 22),
+    UDim2.fromOffset(4, 5),
+    Enum.Font.GothamBold, C.Gray
+)
+previewTitle.ZIndex = 7
+previewTitle.TextSize = 9
+previewTitle.TextXAlignment = Enum.TextXAlignment.Center
+
+local characterImage = Instance.new("ImageLabel")
+characterImage.Name = "SoldierImage"
+characterImage.Size = UDim2.new(1, -6, 1, -34)
+characterImage.Position = UDim2.fromOffset(3, 28)
+characterImage.BackgroundTransparency = 1
+characterImage.ImageTransparency = 0
+characterImage.Image = "rbxassetid://104888390303578"
+characterImage.ScaleType = Enum.ScaleType.Fit
+characterImage.BorderSizePixel = 0
+characterImage.ZIndex = 6
+characterImage.Parent = previewArea
 
 --==================================================
 -- PERSONAGEM | IMAGEM ALTA E ESTREITA
