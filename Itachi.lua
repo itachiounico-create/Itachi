@@ -818,13 +818,12 @@ end
 
 Section("AIMBOTS")
 
--- AIMBOT PRINCIPAL
-local aimForce, aimFov, aimFovSize, hitbox
+-- AIMBOT NORMAL
+local aimForce, aimFov, aimFovSize
 
 local mainAim = Toggle("Aimbot", function(active)
     aimForce.SetVisible(active)
     aimFov.SetVisible(active)
-    hitbox.SetVisible(active)
     aimFovSize.SetVisible(active and aimFov.Get())
 end)
 
@@ -836,14 +835,9 @@ end)
 
 aimFovSize = Slider("Tamanho do FOV", 1, 500, 100)
 
-hitbox = Choice("Hitbox Aim", {
-    "Cabeça", "Peito", "Pernas"
-})
-
 aimForce.SetVisible(false)
 aimFov.SetVisible(false)
 aimFovSize.SetVisible(false)
-hitbox.SetVisible(false)
 
 -- LEGIT AIM
 local legitFov, legitSize
@@ -879,6 +873,19 @@ hardSize = Slider("Tamanho FOV Hard Lock", 1, 500, 100)
 hardFov.SetVisible(false)
 hardSize.SetVisible(false)
 
+-- HITBOX AIM
+local hitbox
+
+local hitboxAim = Toggle("Hitbox Aim", function(active)
+    hitbox.SetVisible(active)
+end)
+
+hitbox = Choice("Parte do corpo", {
+    "Cabeça", "Peito", "Pernas"
+})
+
+hitbox.SetVisible(false)
+
 
 --==================================================
 -- OPÇÕES EXTRAS
@@ -886,20 +893,21 @@ hardSize.SetVisible(false)
 
 Section("OPÇÕES EXTRAS")
 
-local edge = Toggle("Edge Indicator")
-local edgeSize = Slider("Tamanho do círculo das setas", 1, 500, 150)
-local edgeThickness = Slider("Espessura das setas", 1, 10, 2)
+local edgeSize, edgeThickness
 
-edgeSize.SetVisible(false)
-edgeThickness.SetVisible(false)
-
-edge.Button.MouseButton1Click:Connect(function()
-    local active = edge.Get()
+local edge = Toggle("Edge Indicator", function(active)
     edgeSize.SetVisible(active)
     edgeThickness.SetVisible(active)
 end)
 
+edgeSize = Slider("Tamanho do círculo das setas", 1, 500, 150)
+edgeThickness = Slider("Espessura das setas", 1, 10, 2)
+
+edgeSize.SetVisible(false)
+edgeThickness.SetVisible(false)
+
 local lockLine = Toggle("Lock-Line")
+
 
 --==================================================
 -- CORES
