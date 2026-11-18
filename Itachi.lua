@@ -6,6 +6,7 @@
 local Players = game:GetService("Players")
 local UIS = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
+local RunService = game:GetService("RunService")
 
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
@@ -1230,6 +1231,74 @@ Section("CORES")
 local fovColor = Palette("Cor do FOV")
 local lineColor = Palette("Cor do Lock-Line")
 local edgeColor = Palette("Cor das Setas")
+--==================================================
+-- FOV VISUAL
+--==================================================
+
+local function CreateFOV(name)
+    local circle = Instance.new("Frame")
+    circle.Name = name
+    circle.AnchorPoint = Vector2.new(0.5, 0.5)
+    circle.Position = UDim2.fromScale(0.5, 0.5)
+    circle.Size = UDim2.fromOffset(100, 100)
+    circle.BackgroundTransparency = 1
+    circle.BorderSizePixel = 0
+    circle.Visible = false
+    circle.ZIndex = 100
+    circle.Parent = gui
+
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(1, 0)
+    corner.Parent = circle
+
+    local stroke = Instance.new("UIStroke")
+    stroke.Thickness = 1.5
+    stroke.Color = Color3.new(1, 0, 0)
+    stroke.Parent = circle
+
+    return {
+        Frame = circle,
+        Stroke = stroke
+    }
+end
+
+local normalCircle = CreateFOV("NormalFOV")
+local legitCircle = CreateFOV("LegitFOV")
+local hardCircle = CreateFOV("HardFOV")
+
+local function UpdateCircle(circle, enabled, size, color)
+    circle.Frame.Visible = enabled
+
+    if enabled then
+        circle.Frame.Size = UDim2.fromOffset(size, size)
+        circle.Stroke.Color = color
+    end
+end
+
+RunService.RenderStepped:Connect(function()
+
+    UpdateCircle(
+        normalCircle,
+        mainAim.Get() and aimFov.Get(),
+        aimFovSize.Get(),
+        fovColor.Get()
+    )
+
+    UpdateCircle(
+        legitCircle,
+        legitAim.Get() and legitFov.Get(),
+        legitSize.Get(),
+        fovColor.Get()
+    )
+
+    UpdateCircle(
+        hardCircle,
+        hardLock.Get() and hardFov.Get(),
+        hardSize.Get(),
+        fovColor.Get()
+    )
+
+end)
 --==================================================
 -- PERSONAGEM | PRÉVIA
 --==================================================
