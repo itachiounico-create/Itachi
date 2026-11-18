@@ -783,32 +783,344 @@ local paletteColors = {
     Color3.fromRGB(255, 180, 0)
 }
 
+
+--==================================================
+-- COLOR LAB | PALETA HSV
+--==================================================
+
 local function Palette(name)
-    local index = 1
+    local selectedColor = Color3.fromRGB(255, 0, 0)
 
-    local button = Instance.new("TextButton")
-    button.Size = UDim2.new(1, -5, 0, 29)
-    button.BackgroundColor3 = paletteColors[index]
-    button.BackgroundTransparency = 0.15
-    button.BorderSizePixel = 0
-    button.TextColor3 = Color3.new(1, 1, 1)
-    button.TextSize = 10
-    button.Font = Enum.Font.GothamBold
-    button.ZIndex = 7
-    button.Parent = scroll
-    Round(button, 6)
+    local holder = Instance.new("Frame")
+    holder.Size = UDim2.new(1, -5, 0, 35)
+    holder.BackgroundColor3 = C.Card
+    holder.BackgroundTransparency = 0.55
+    holder.BorderSizePixel = 0
+    holder.ZIndex = 7
+    holder.Parent = scroll
+    Round(holder, 6)
+    Border(holder, 0.85)
 
-    local function Update()
-        button.BackgroundColor3 = paletteColors[index]
-        button.Text = name .. "  •  COR " .. index
+    local label = Instance.new("TextLabel")
+    label.Size = UDim2.new(1, -65, 1, 0)
+    label.Position = UDim2.fromOffset(9, 0)
+    label.BackgroundTransparency = 1
+    label.Text = name
+    label.TextColor3 = C.White
+    label.TextSize = 10
+    label.Font = Enum.Font.GothamMedium
+    label.TextXAlignment = Enum.TextXAlignment.Left
+    label.ZIndex = 8
+    label.Parent = holder
+
+    local swatch = Instance.new("TextButton")
+    swatch.Size = UDim2.fromOffset(38, 25)
+    swatch.Position = UDim2.new(1, -47, 0.5, -12)
+    swatch.BackgroundColor3 = selectedColor
+    swatch.Text = ""
+    swatch.BorderSizePixel = 0
+    swatch.ZIndex = 9
+    swatch.Parent = holder
+    Round(swatch, 5)
+    Border(swatch, 0.3)
+
+    local function OpenPicker()
+        local oldPicker = main:FindFirstChild("ColorPicker")
+        if oldPicker then
+            oldPicker:Destroy()
+        end
+
+        local h, s, v = selectedColor:ToHSV()
+        local dragging = nil
+        local activeInput = nil
+
+        local popup = Instance.new("Frame")
+        popup.Name = "ColorPicker"
+        popup.Size = UDim2.fromOffset(310, 270)
+        popup.Position = UDim2.new(0.5, -155, 0.5, -135)
+        popup.BackgroundColor3 = Color3.fromRGB(20, 20, 26)
+        popup.BorderSizePixel = 0
+        popup.ZIndex = 20
+        popup.Parent = main
+        Round(popup, 9)
+        Border(popup, 0.15)
+
+        local heading = Instance.new("TextLabel")
+        heading.Size = UDim2.new(1, -20, 0, 25)
+        heading.Position = UDim2.fromOffset(10, 5)
+        heading.BackgroundTransparency = 1
+        heading.Text = "ESCOLHER COR"
+        heading.TextColor3 = C.White
+        heading.TextSize = 12
+        heading.Font = Enum.Font.GothamBold
+        heading.TextXAlignment = Enum.TextXAlignment.Left
+        heading.ZIndex = 21
+        heading.Parent = popup
+
+        -- QUADRADO HSV
+
+        local square = Instance.new("Frame")
+        square.Size = UDim2.fromOffset(274, 125)
+        square.Position = UDim2.fromOffset(18, 35)
+        square.BackgroundColor3 = Color3.fromHSV(h, 1, 1)
+        square.BorderSizePixel = 0
+        square.ClipsDescendants = true
+        square.ZIndex = 21
+        square.Parent = popup
+        Round(square, 5)
+
+        local white = Instance.new("Frame")
+        white.Size = UDim2.fromScale(1, 1)
+        white.BackgroundColor3 = Color3.new(1, 1, 1)
+        white.BorderSizePixel = 0
+        white.ZIndex = 22
+        white.Parent = square
+
+        local wg = Instance.new("UIGradient")
+        wg.Transparency = NumberSequence.new({
+            NumberSequenceKeypoint.new(0, 0),
+            NumberSequenceKeypoint.new(1, 1)
+        })
+        wg.Parent = white
+
+        local black = Instance.new("Frame")
+        black.Size = UDim2.fromScale(1, 1)
+        black.BackgroundColor3 = Color3.new(0, 0, 0)
+        black.BorderSizePixel = 0
+        black.ZIndex = 23
+        black.Parent = square
+
+        local bg = Instance.new("UIGradient")
+        bg.Rotation = 90
+        bg.Transparency = NumberSequence.new({
+            NumberSequenceKeypoint.new(0, 1),
+            NumberSequenceKeypoint.new(1, 0)
+        })
+        bg.Parent = black
+
+        local squareButton = Instance.new("TextButton")
+        squareButton.Size = UDim2.fromScale(1, 1)
+        squareButton.BackgroundTransparency = 1
+        squareButton.Text = ""
+        squareButton.ZIndex = 24
+        squareButton.Parent = square
+
+        local marker = Instance.new("Frame")
+        marker.Size = UDim2.fromOffset(14, 14)
+        marker.AnchorPoint = Vector2.new(0.5, 0.5)
+        marker.BackgroundTransparency = 1
+        marker.ZIndex = 25
+        marker.Parent = square
+        Round(marker, 20)
+
+        local markerBorder = Instance.new("UIStroke")
+        markerBorder.Color = Color3.new(1, 1, 1)
+        markerBorder.Thickness = 2
+        markerBorder.Parent = marker
+
+        -- BARRA DE MATIZ
+
+        local hueBar = Instance.new("Frame")
+        hueBar.Size = UDim2.fromOffset(274, 16)
+        hueBar.Position = UDim2.fromOffset(18, 170)
+        hueBar.BackgroundColor3 = Color3.new(1, 1, 1)
+        hueBar.BorderSizePixel = 0
+        hueBar.ZIndex = 21
+        hueBar.Parent = popup
+        Round(hueBar, 5)
+
+        local hueGradient = Instance.new("UIGradient")
+        hueGradient.Color = ColorSequence.new({
+            ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 0, 0)),
+            ColorSequenceKeypoint.new(0.17, Color3.fromRGB(255, 255, 0)),
+            ColorSequenceKeypoint.new(0.33, Color3.fromRGB(0, 255, 0)),
+            ColorSequenceKeypoint.new(0.5, Color3.fromRGB(0, 255, 255)),
+            ColorSequenceKeypoint.new(0.67, Color3.fromRGB(0, 0, 255)),
+            ColorSequenceKeypoint.new(0.83, Color3.fromRGB(255, 0, 255)),
+            ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 0, 0))
+        })
+        hueGradient.Parent = hueBar
+
+        local hueButton = Instance.new("TextButton")
+        hueButton.Size = UDim2.fromScale(1, 1)
+        hueButton.BackgroundTransparency = 1
+        hueButton.Text = ""
+        hueButton.ZIndex = 23
+        hueButton.Parent = hueBar
+
+        local hueMarker = Instance.new("Frame")
+        hueMarker.Size = UDim2.fromOffset(5, 22)
+        hueMarker.AnchorPoint = Vector2.new(0.5, 0.5)
+        hueMarker.BackgroundColor3 = C.White
+        hueMarker.BorderSizePixel = 0
+        hueMarker.ZIndex = 24
+        hueMarker.Parent = hueBar
+        Round(hueMarker, 3)
+
+        -- PRÉVIA
+
+        local preview = Instance.new("Frame")
+        preview.Size = UDim2.fromOffset(25, 25)
+        preview.Position = UDim2.fromOffset(18, 195)
+        preview.BorderSizePixel = 0
+        preview.ZIndex = 21
+        preview.Parent = popup
+        Round(preview, 5)
+
+        local hex = Instance.new("TextLabel")
+        hex.Size = UDim2.fromOffset(120, 25)
+        hex.Position = UDim2.fromOffset(52, 195)
+        hex.BackgroundTransparency = 1
+        hex.TextColor3 = C.White
+        hex.TextSize = 11
+        hex.Font = Enum.Font.GothamMedium
+        hex.TextXAlignment = Enum.TextXAlignment.Left
+        hex.ZIndex = 21
+        hex.Parent = popup
+
+        -- BOTÕES
+
+        local cancel = Button(
+            popup,
+            "CANCELAR",
+            UDim2.fromOffset(125, 27),
+            UDim2.fromOffset(18, 232)
+        )
+        cancel.ZIndex = 22
+
+        local confirm = Button(
+            popup,
+            "CONFIRMAR",
+            UDim2.fromOffset(125, 27),
+            UDim2.fromOffset(167, 232)
+        )
+        confirm.ZIndex = 22
+        confirm.BackgroundColor3 = C.Red
+
+        -- ATUALIZAÇÃO
+
+        local function Update()
+            local color = Color3.fromHSV(h, s, v)
+
+            square.BackgroundColor3 = Color3.fromHSV(h, 1, 1)
+
+            marker.Position = UDim2.new(s, 0, 1 - v, 0)
+            hueMarker.Position = UDim2.new(h, 0, 0.5, 0)
+
+            preview.BackgroundColor3 = color
+
+            hex.Text = string.format(
+                "#%02X%02X%02X",
+                math.floor(color.R * 255),
+                math.floor(color.G * 255),
+                math.floor(color.B * 255)
+            )
+        end
+
+        local function UpdateSquare(position)
+            s = math.clamp(
+                (position.X - square.AbsolutePosition.X)
+                / square.AbsoluteSize.X, 0, 1
+            )
+
+            v = 1 - math.clamp(
+                (position.Y - square.AbsolutePosition.Y)
+                / square.AbsoluteSize.Y, 0, 1
+            )
+
+            Update()
+        end
+
+        local function UpdateHue(position)
+            h = math.clamp(
+                (position.X - hueBar.AbsolutePosition.X)
+                / hueBar.AbsoluteSize.X, 0, 1
+            )
+
+            Update()
+        end
+
+        squareButton.InputBegan:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.Touch
+            or input.UserInputType == Enum.UserInputType.MouseButton1 then
+                dragging = "Square"
+                activeInput = input
+                UpdateSquare(input.Position)
+            end
+        end)
+
+        hueButton.InputBegan:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.Touch
+            or input.UserInputType == Enum.UserInputType.MouseButton1 then
+                dragging = "Hue"
+                activeInput = input
+                UpdateHue(input.Position)
+            end
+        end)
+
+        local changedConnection
+        local endedConnection
+
+        changedConnection = UIS.InputChanged:Connect(function(input)
+            if not dragging then return end
+
+            if input.UserInputType == Enum.UserInputType.MouseMovement then
+                if dragging == "Square" then
+                    UpdateSquare(input.Position)
+                else
+                    UpdateHue(input.Position)
+                end
+            elseif input.UserInputType == Enum.UserInputType.Touch
+            and input == activeInput then
+                if dragging == "Square" then
+                    UpdateSquare(input.Position)
+                else
+                    UpdateHue(input.Position)
+                end
+            end
+        end)
+
+        endedConnection = UIS.InputEnded:Connect(function(input)
+            if input == activeInput
+            or input.UserInputType == Enum.UserInputType.MouseButton1 then
+                dragging = nil
+                activeInput = nil
+            end
+        end)
+
+        local function Close()
+            changedConnection:Disconnect()
+            endedConnection:Disconnect()
+            popup:Destroy()
+        end
+
+        cancel.Activated:Connect(function()
+            Close()
+        end)
+
+        confirm.Activated:Connect(function()
+            selectedColor = Color3.fromHSV(h, s, v)
+            swatch.BackgroundColor3 = selectedColor
+            Close()
+        end)
+
+        Update()
     end
 
-    button.MouseButton1Click:Connect(function()
-        index = index % #paletteColors + 1
-        Update()
-    end)
+    swatch.Activated:Connect(OpenPicker)
 
-    Update()
+    return {
+        Holder = holder,
+
+        Get = function()
+            return selectedColor
+        end,
+
+        Set = function(color)
+            selectedColor = color
+            swatch.BackgroundColor3 = color
+        end
+    }
 end
 
 
