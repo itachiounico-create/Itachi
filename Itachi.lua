@@ -1227,10 +1227,9 @@ local lockLine = Toggle("Lock-Line")
 
 Section("CORES")
 
-Palette("Cores do FOV")
-Palette("Cores da LINE")
-Palette("Cores das Setas")
-
+local fovColor = Palette("Cor do FOV")
+local lineColor = Palette("Cor do Lock-Line")
+local edgeColor = Palette("Cor das Setas")
 --==================================================
 -- PERSONAGEM | PRÉVIA
 --==================================================
