@@ -1399,20 +1399,18 @@ CircleStroke.Color = Color3.fromRGB(180, 0, 255)
 CircleStroke.Parent = Circle
 
 -- CONFIGURAÇÕES USADAS PELO MENU
-_G.ItachiLockLine = {
-    SetEnabled = function(value)
-        Enabled = value
-    end,
+SetFOVSize = function(value)
+    FOV_SIZE = math.clamp(
+        math.floor(value + 0.5),
+        50,
+        600
+    )
 
-    SetFOVVisible = function(value)
-        FOVVisible = value
-    end,
-
-    SetFOVSize = function(value)
-        FOV_SIZE = math.clamp(value, 50, 600)
-        Circle.Size = UDim2.fromOffset(FOV_SIZE, FOV_SIZE)
-    end
-}
+    Circle.Size = UDim2.fromOffset(
+        FOV_SIZE,
+        FOV_SIZE
+    )
+end
 
 -- PROJEÇÃO DA CABEÇA
 local function GetScreenTarget(character)
