@@ -1219,7 +1219,35 @@ edgeThickness = Slider("Espessura das setas", 1, 10, 2)
 edgeSize.SetVisible(false)
 edgeThickness.SetVisible(false)
 
-local lockLine = Toggle("Lock-Line")
+-- LOCK-LINE
+local lineFov, lineSize
+
+local lockLine = Toggle("Lock-Line", function(active)
+    lineFov.SetVisible(active)
+    lineSize.SetVisible(active and lineFov.Get())
+
+    if _G.ItachiLockLine then
+        _G.ItachiLockLine.SetEnabled(active)
+    end
+end)
+
+lineFov = Toggle("FOV", function(active)
+    lineSize.SetVisible(lockLine.Get() and active)
+
+    if _G.ItachiLockLine then
+        _G.ItachiLockLine.SetFOVVisible(active)
+    end
+end)
+
+lineSize = Slider("Tamanho FOV", 50, 600, 200)
+
+lineSize.SetVisible(false)
+lineFov.SetVisible(false)
+
+-- Valor inicial
+if _G.ItachiLockLine then
+    _G.ItachiLockLine.SetFOVSize(lineSize.Get())
+end
 
 
 --==================================================
