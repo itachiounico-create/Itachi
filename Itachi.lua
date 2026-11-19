@@ -764,6 +764,9 @@ local function Choice(name, choices)
     local function Update()
         button.Text = name .. ": " .. choices[index]
     end
+    if onChanged then
+    onChanged(value)
+    end
 
     button.MouseButton1Click:Connect(function()
         index = index % #choices + 1
