@@ -697,21 +697,22 @@ local function Slider(name, minValue, maxValue, defaultValue, onChanged)
     local dragging = false
 
     local function Update(inputX)
-        local width = bar.AbsoluteSize.X
-        local start = bar.AbsolutePosition.X
-        local percent = math.clamp((inputX - start) / width, 0, 1)
+    local width = bar.AbsoluteSize.X
+    local start = bar.AbsolutePosition.X
+    local percent = math.clamp((inputX - start) / width, 0, 1)
 
-        value = math.floor(minValue + (maxValue - minValue) * percent)
-        fill.Size = UDim2.new(percent, 0, 1, 0)
-        label.Text = name .. ": " .. value
-    end
-    if onChanged then
-    onChanged(value)
-    end
-
+    value = math.floor(minValue + (maxValue - minValue) * percent)
+    fill.Size = UDim2.new(percent, 0, 1, 0)
     label.Text = name .. ": " .. value
-    fill.Size = UDim2.new(
-        (value - minValue) / (maxValue - minValue), 0, 1, 0
+
+    if onChanged then
+        onChanged(value)
+    end
+end
+
+label.Text = name .. ": " .. value
+fill.Size = UDim2.new(
+    (value - minValue) / (maxValue - minValue), 0, 1, 0
     )
 
     bar.InputBegan:Connect(function(input)
@@ -764,9 +765,7 @@ local function Choice(name, choices)
     local function Update()
         button.Text = name .. ": " .. choices[index]
     end
-    if onChanged then
-    onChanged(value)
-    end
+    
 
     button.MouseButton1Click:Connect(function()
         index = index % #choices + 1
