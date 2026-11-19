@@ -1399,6 +1399,15 @@ CircleStroke.Color = Color3.fromRGB(180, 0, 255)
 CircleStroke.Parent = Circle
 
 -- CONFIGURAÇÕES USADAS PELO MENU
+_G.ItachiLockLine = {
+    SetEnabled = function(value)
+        Enabled = value
+    end,
+
+    SetFOVVisible = function(value)
+        FOVVisible = value
+    end,
+
 SetFOVSize = function(value)
     FOV_SIZE = math.clamp(
         math.floor(value + 0.5),
