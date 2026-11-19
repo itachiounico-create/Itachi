@@ -1213,16 +1213,42 @@ Section("OPÇÕES EXTRAS")
 
 local edgeSize, edgeThickness
 
+
+local edgeFov, edgeFovSize, edgeArrowSize
+
 local edge = Toggle("Edge Indicator", function(active)
-    edgeSize.SetVisible(active)
-    edgeThickness.SetVisible(active)
+    edgeFov.SetVisible(active)
+    edgeArrowSize.SetVisible(active)
+    edgeFovSize.SetVisible(active and edgeFov.Get())
+
+    if _G.ItachiEdgeIndicator then
+        _G.ItachiEdgeIndicator.SetEnabled(active)
+    end
 end)
 
-edgeSize = Slider("Tamanho do círculo das setas", 1, 500, 150)
-edgeThickness = Slider("Espessura das setas", 1, 10, 2)
+edgeFov = Toggle("FOV", function(active)
+    edgeFovSize.SetVisible(edge.Get() and active)
 
-edgeSize.SetVisible(false)
-edgeThickness.SetVisible(false)
+    if _G.ItachiEdgeIndicator then
+        _G.ItachiEdgeIndicator.SetFOVVisible(active)
+    end
+end)
+
+edgeFovSize = Slider("Tamanho FOV", 50, 600, 240, function(value)
+    if _G.ItachiEdgeIndicator then
+        _G.ItachiEdgeIndicator.SetFOVSize(value)
+    end
+end)
+
+edgeArrowSize = Slider("Tamanho da seta", 8, 35, 15, function(value)
+    if _G.ItachiEdgeIndicator then
+        _G.ItachiEdgeIndicator.SetArrowSize(value)
+    end
+end)
+
+edgeFov.SetVisible(false)
+edgeFovSize.SetVisible(false)
+edgeArrowSize.SetVisible(false)
 
 -- LOCK-LINE
 local lineFov, lineSize
@@ -1422,6 +1448,252 @@ _G.ItachiLockLine = {
         )
     end
 }
+
+--==================================================
+-- ITACHI HUB | EDGE INDICATOR V2
+-- INTEGRACAO COM MENU PRINCIPAL
+--==================================================
+
+local EdgePlayers = game:GetService("Players")
+local EdgeRunService = game:GetService("RunService")
+
+local EdgeLocalPlayer = EdgePlayers.LocalPlayer
+local EdgePlayerGui = EdgeLocalPlayer:WaitForChild("PlayerGui")
+
+-- LIMPA INTEGRACAO ANTERIOR
+if _G.ItachiEdgeConnection then
+    _G.ItachiEdgeConnection:Disconnect()
+end
+
+if _G.ItachiEdgeAddedConnection then
+    _G.ItachiEdgeAddedConnection:Disconnect()
+end
+
+if _G.ItachiEdgeRemovingConnection then
+    _G.ItachiEdgeRemovingConnection:Disconnect()
+end
+
+local OldEdgeGui = EdgePlayerGui:FindFirstChild("ItachiEdgeIndicator")
+if OldEdgeGui then
+    OldEdgeGui:Destroy()
+end
+
+-- CONFIGURACOES
+local EdgeEnabled = false
+local EdgeFOVVisible = false
+local EdgeFOVSize = 240
+local EdgeArrowSize = 15
+
+local EdgeColor = Color3.fromRGB(180, 0, 255)
+
+-- GUI EXCLUSIVA DOS INDICADORES
+local EdgeGui = Instance.new("ScreenGui")
+EdgeGui.Name = "ItachiEdgeIndicator"
+EdgeGui.IgnoreGuiInset = true
+EdgeGui.ResetOnSpawn = false
+EdgeGui.DisplayOrder = 101
+EdgeGui.Parent = EdgePlayerGui
+
+-- CIRCULO FOV
+local EdgeCircle = Instance.new("Frame")
+EdgeCircle.Name = "EdgeFOV"
+EdgeCircle.AnchorPoint = Vector2.new(0.5, 0.5)
+EdgeCircle.BackgroundTransparency = 1
+EdgeCircle.BorderSizePixel = 0
+EdgeCircle.Size = UDim2.fromOffset(EdgeFOVSize, EdgeFOVSize)
+EdgeCircle.Visible = false
+EdgeCircle.Parent = EdgeGui
+
+local EdgeCorner = Instance.new("UICorner")
+EdgeCorner.CornerRadius = UDim.new(1, 0)
+EdgeCorner.Parent = EdgeCircle
+
+local EdgeStroke = Instance.new("UIStroke")
+EdgeStroke.Thickness = 1.5
+EdgeStroke.Color = EdgeColor
+EdgeStroke.Parent = EdgeCircle
+
+-- SETAS
+local EdgeArrows = {}
+
+local function CreateEdgeArrow(player)
+    local Arrow = Instance.new("TextLabel")
+
+    Arrow.Name = "Arrow_" .. player.UserId
+    Arrow.AnchorPoint = Vector2.new(0.5, 0.5)
+    Arrow.Size = UDim2.fromOffset(
+        EdgeArrowSize * 2,
+        EdgeArrowSize * 2
+    )
+
+    Arrow.BackgroundTransparency = 1
+    Arrow.Text = "▲"
+    Arrow.TextColor3 = EdgeColor
+    Arrow.TextSize = EdgeArrowSize
+    Arrow.Font = Enum.Font.GothamBold
+    Arrow.Visible = false
+    Arrow.Parent = EdgeGui
+
+    EdgeArrows[player] = Arrow
+end
+
+local function RemoveEdgeArrow(player)
+    if EdgeArrows[player] then
+        EdgeArrows[player]:Destroy()
+        EdgeArrows[player] = nil
+    end
+end
+
+for _, player in ipairs(EdgePlayers:GetPlayers()) do
+    if player ~= EdgeLocalPlayer then
+        CreateEdgeArrow(player)
+    end
+end
+
+_G.ItachiEdgeAddedConnection = EdgePlayers.PlayerAdded:Connect(function(player)
+    if player ~= EdgeLocalPlayer then
+        CreateEdgeArrow(player)
+    end
+end)
+
+_G.ItachiEdgeRemovingConnection = EdgePlayers.PlayerRemoving:Connect(
+    RemoveEdgeArrow
+)
+
+--==================================================
+-- CONTROLES DO MENU ORIGINAL
+--==================================================
+
+_G.ItachiEdgeIndicator = {
+
+    SetEnabled = function(value)
+        EdgeEnabled = value
+    end,
+
+    SetFOVVisible = function(value)
+        EdgeFOVVisible = value
+    end,
+
+    SetFOVSize = function(value)
+        EdgeFOVSize = math.clamp(
+            math.floor(value + 0.5),
+            50,
+            600
+        )
+    end,
+
+    SetArrowSize = function(value)
+        EdgeArrowSize = math.clamp(
+            math.floor(value + 0.5),
+            8,
+            35
+        )
+    end
+}
+
+--==================================================
+-- ATUALIZACAO VISUAL
+--==================================================
+
+_G.ItachiEdgeConnection = EdgeRunService.RenderStepped:Connect(function()
+
+    local Camera = workspace.CurrentCamera
+    if not Camera then return end
+
+    local Viewport = Camera.ViewportSize
+
+    local Center = Vector2.new(
+        Viewport.X / 2,
+        Viewport.Y / 2
+    )
+
+    -- COR DO COLORLAB, SE DISPONIVEL
+    if edgeColor then
+        EdgeColor = edgeColor.Get()
+    end
+
+    -- CIRCULO
+    EdgeCircle.Position = UDim2.fromOffset(
+        Center.X,
+        Center.Y
+    )
+
+    EdgeCircle.Size = UDim2.fromOffset(
+        EdgeFOVSize,
+        EdgeFOVSize
+    )
+
+    EdgeCircle.Visible = EdgeEnabled and EdgeFOVVisible
+    EdgeStroke.Color = EdgeColor
+
+    -- RAIO ACOMPANHA O TAMANHO DO FOV
+    local ArrowRadius =
+        (EdgeFOVSize / 2) + EdgeArrowSize + 8
+
+    for player, Arrow in pairs(EdgeArrows) do
+
+        Arrow.Visible = false
+
+        if not EdgeEnabled then
+            continue
+        end
+
+        local Character = player.Character
+
+        local Root = Character
+            and Character:FindFirstChild("HumanoidRootPart")
+
+        local Humanoid = Character
+            and Character:FindFirstChildOfClass("Humanoid")
+
+        if not Root or not Humanoid or Humanoid.Health <= 0 then
+            continue
+        end
+
+        -- DIRECAO RELATIVA A CAMERA
+        local Relative = Camera.CFrame:PointToObjectSpace(
+            Root.Position
+        )
+
+        local Direction = Vector2.new(
+            Relative.X,
+            -Relative.Y
+        )
+
+        if Direction.Magnitude < 0.001 then
+            Direction = Vector2.new(0, 1)
+        end
+
+        Direction = Direction.Unit
+
+        -- POSICAO AO REDOR DO FOV
+        local Position = Center + Direction * ArrowRadius
+
+        Arrow.Position = UDim2.fromOffset(
+            Position.X,
+            Position.Y
+        )
+
+        Arrow.Size = UDim2.fromOffset(
+            EdgeArrowSize * 2,
+            EdgeArrowSize * 2
+        )
+
+        Arrow.Rotation =
+            math.deg(math.atan2(Direction.Y, Direction.X)) + 90
+
+        Arrow.TextSize = EdgeArrowSize
+        Arrow.TextColor3 = EdgeColor
+        Arrow.Visible = true
+    end
+end)
+
+-- VALORES INICIAIS DO MENU
+_G.ItachiEdgeIndicator.SetEnabled(edge.Get())
+_G.ItachiEdgeIndicator.SetFOVVisible(edgeFov.Get())
+_G.ItachiEdgeIndicator.SetFOVSize(edgeFovSize.Get())
+_G.ItachiEdgeIndicator.SetArrowSize(edgeArrowSize.Get())
+
 -- PROJEÇÃO DA CABEÇA
 local function GetScreenTarget(character)
     local head = character and character:FindFirstChild("Head")
