@@ -652,7 +652,7 @@ local function Toggle(name, callback)
 end
 
 
-local function Slider(name, minValue, maxValue, defaultValue)
+local function Slider(name, minValue, maxValue, defaultValue, onChanged)
     local holder = Instance.new("Frame")
     holder.Size = UDim2.new(1, -5, 0, 43)
     holder.BackgroundColor3 = C.Card
@@ -704,6 +704,9 @@ local function Slider(name, minValue, maxValue, defaultValue)
         value = math.floor(minValue + (maxValue - minValue) * percent)
         fill.Size = UDim2.new(percent, 0, 1, 0)
         label.Text = name .. ": " .. value
+    end
+    if onChanged then
+    onChanged(value)
     end
 
     label.Text = name .. ": " .. value
