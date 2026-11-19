@@ -1408,8 +1408,16 @@ _G.ItachiLockLine = {
     end,
 
     SetFOVSize = function(value)
-        FOV_SIZE = math.clamp(value, 50, 600)
-        Circle.Size = UDim2.fromOffset(FOV_SIZE, FOV_SIZE)
+        FOV_SIZE = math.clamp(
+            math.floor(value + 0.5),
+            50,
+            600
+        )
+
+        Circle.Size = UDim2.fromOffset(
+            FOV_SIZE,
+            FOV_SIZE
+        )
     end
 }
 -- PROJEÇÃO DA CABEÇA
