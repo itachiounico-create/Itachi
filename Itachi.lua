@@ -1242,7 +1242,11 @@ lineFov = Toggle("FOV", function(active)
     end
 end)
 
-lineSize = Slider("Tamanho FOV", 50, 600, 200)
+lineSize = Slider("Tamanho FOV", 50, 600, 200, function(value)
+    if _G.ItachiLockLine then
+        _G.ItachiLockLine.SetFOVSize(value)
+    end
+end)
 
 lineSize.SetVisible(false)
 lineFov.SetVisible(false)
