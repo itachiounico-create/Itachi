@@ -1372,7 +1372,7 @@ ScreenGui.Parent = PlayerGui
 -- LINHA
 local Line = Instance.new("Frame")
 Line.Name = "LockLine"
-Line.AnchorPoint = Vector2.new(0, 0.5)
+Line.AnchorPoint = Vector2.new(0.5, 0.5)
 Line.BackgroundColor3 = Color3.fromRGB(180, 0, 255)
 Line.BorderSizePixel = 0
 Line.Size = UDim2.fromOffset(0, 1)
