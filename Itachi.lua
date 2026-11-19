@@ -1334,6 +1334,187 @@ RunService.RenderStepped:Connect(function()
     )
 
 end)
+
+--==================================================
+-- ITACHI HUB | LOCK-LINE V9 INTEGRATION
+-- VISUAL: LINHA + CIRCULO FOV
+--==================================================
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+
+local LocalPlayer = Players.LocalPlayer
+local Camera = workspace.CurrentCamera
+local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
+
+-- Limpa uma integração anterior
+if _G.ItachiLockLineConnection then
+    _G.ItachiLockLineConnection:Disconnect()
+end
+
+local oldGui = PlayerGui:FindFirstChild("ItachiLockLine")
+if oldGui then
+    oldGui:Destroy()
+end
+
+local Enabled = false
+local FOVVisible = false
+local FOV_SIZE = 200
+
+-- GUI
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "ItachiLockLine"
+ScreenGui.IgnoreGuiInset = true
+ScreenGui.ResetOnSpawn = false
+ScreenGui.DisplayOrder = 100
+ScreenGui.Parent = PlayerGui
+
+-- LINHA
+local Line = Instance.new("Frame")
+Line.Name = "LockLine"
+Line.AnchorPoint = Vector2.new(0, 0.5)
+Line.BackgroundColor3 = Color3.fromRGB(180, 0, 255)
+Line.BorderSizePixel = 0
+Line.Size = UDim2.fromOffset(0, 1)
+Line.Visible = false
+Line.Parent = ScreenGui
+
+-- CIRCULO FOV
+local Circle = Instance.new("Frame")
+Circle.Name = "LockLineFOV"
+Circle.AnchorPoint = Vector2.new(0.5, 0.5)
+Circle.BackgroundTransparency = 1
+Circle.BorderSizePixel = 0
+Circle.Size = UDim2.fromOffset(FOV_SIZE, FOV_SIZE)
+Circle.Visible = false
+Circle.Parent = ScreenGui
+
+local CircleCorner = Instance.new("UICorner")
+CircleCorner.CornerRadius = UDim.new(1, 0)
+CircleCorner.Parent = Circle
+
+local CircleStroke = Instance.new("UIStroke")
+CircleStroke.Thickness = 1
+CircleStroke.Color = Color3.fromRGB(180, 0, 255)
+CircleStroke.Parent = Circle
+
+-- CONFIGURAÇÕES USADAS PELO MENU
+_G.ItachiLockLine = {
+    SetEnabled = function(value)
+        Enabled = value
+    end,
+
+    SetFOVVisible = function(value)
+        FOVVisible = value
+    end,
+
+    SetFOVSize = function(value)
+        FOV_SIZE = math.clamp(value, 50, 600)
+        Circle.Size = UDim2.fromOffset(FOV_SIZE, FOV_SIZE)
+    end
+}
+
+-- PROJEÇÃO DA CABEÇA
+local function GetScreenTarget(character)
+    local head = character and character:FindFirstChild("Head")
+    if not head then
+        return nil
+    end
+
+    local position, onScreen =
+        Camera:WorldToViewportPoint(head.Position)
+
+    if not onScreen or position.Z <= 0 then
+        return nil
+    end
+
+    return Vector2.new(position.X, position.Y)
+end
+
+-- SELEÇÃO DINÂMICA
+local function AcquireTarget(center)
+    local closestPlayer = nil
+    local closestDistance = FOV_SIZE / 2
+
+    for _, player in ipairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer then
+            local character = player.Character
+            local humanoid = character
+                and character:FindFirstChildOfClass("Humanoid")
+
+            if humanoid and humanoid.Health > 0 then
+                local screenPosition = GetScreenTarget(character)
+
+                if screenPosition then
+                    local distance = (screenPosition - center).Magnitude
+
+                    if distance < closestDistance then
+                        closestDistance = distance
+                        closestPlayer = screenPosition
+                    end
+                end
+            end
+        end
+    end
+
+    return closestPlayer
+end
+
+-- ATUALIZAÇÃO VISUAL
+local function UpdateVisuals()
+    Camera = workspace.CurrentCamera
+    if not Camera then
+        return
+    end
+
+    local viewport = Camera.ViewportSize
+    local center = Vector2.new(
+        viewport.X / 2,
+        viewport.Y / 2
+    )
+
+    Circle.Position = UDim2.fromOffset(center.X, center.Y)
+    Circle.Size = UDim2.fromOffset(FOV_SIZE, FOV_SIZE)
+
+    -- Cores do ColorLab em tempo real
+    if lineColor then
+        Line.BackgroundColor3 = lineColor.Get()
+    end
+
+    if fovColor then
+        CircleStroke.Color = fovColor.Get()
+    end
+
+    Circle.Visible = Enabled and FOVVisible
+    Line.Visible = false
+
+    if not Enabled then
+        return
+    end
+
+    local targetPosition = AcquireTarget(center)
+
+    if targetPosition then
+        local difference = targetPosition - center
+        local distance = difference.Magnitude
+
+        Line.Position = UDim2.fromOffset(center.X, center.Y)
+        Line.Size = UDim2.fromOffset(distance, 1)
+        Line.Rotation = math.deg(
+            math.atan2(difference.Y, difference.X)
+        )
+        Line.Visible = true
+    end
+end
+
+_G.ItachiLockLineConnection =
+    RunService.RenderStepped:Connect(UpdateVisuals)
+
+-- SINCRONIZA COM OS CONTROLES DO MENU
+_G.ItachiLockLine.SetFOVSize(lineSize.Get())
+_G.ItachiLockLine.SetFOVVisible(lineFov.Get())
+_G.ItachiLockLine.SetEnabled(lockLine.Get())
+
 --==================================================
 -- PERSONAGEM | PRÉVIA
 --==================================================
