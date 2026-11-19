@@ -1495,15 +1495,26 @@ local function UpdateVisuals()
     local targetPosition = AcquireTarget(center)
 
     if targetPosition then
-        local difference = targetPosition - center
-        local distance = difference.Magnitude
+    local StartPoint = center
+    local EndPoint = targetPosition
 
-        Line.Position = UDim2.fromOffset(center.X, center.Y)
-        Line.Size = UDim2.fromOffset(distance, 1)
-        Line.Rotation = math.deg(
-            math.atan2(difference.Y, difference.X)
-        )
-        Line.Visible = true
+    local Difference = EndPoint - StartPoint
+    local Distance = Difference.Magnitude
+
+    local MiddlePoint = (StartPoint + EndPoint) / 2
+
+    Line.Position = UDim2.fromOffset(
+        MiddlePoint.X,
+        MiddlePoint.Y
+    )
+
+    Line.Size = UDim2.fromOffset(Distance, 1)
+
+    Line.Rotation = math.deg(
+        math.atan2(Difference.Y, Difference.X)
+    )
+
+    Line.Visible = true
     end
 end
 
