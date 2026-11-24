@@ -1921,6 +1921,9 @@ local function ShowPage(name)
 
     aimButton.BackgroundColor3 =
         name == "Aimbot" and C.Red or C.Card
+
+    espButton.BackgroundColor3 =
+        name == "ESP" and C.Red or C.Card
 end
 
 homeButton.MouseButton1Click:Connect(function()
@@ -1929,6 +1932,10 @@ end)
 
 aimButton.MouseButton1Click:Connect(function()
     ShowPage("Aimbot")
+end)
+
+espButton.MouseButton1Click:Connect(function()
+    ShowPage("ESP")
 end)
 
 --==================================================
