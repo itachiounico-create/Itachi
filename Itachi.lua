@@ -319,6 +319,13 @@ local aimButton = Button(
     UDim2.fromOffset(6, 63)
 )
 aimButton.ZIndex = 4
+local espButton = Button(
+    sidebar,
+    "◎  ESP",
+    UDim2.new(1, -12, 0, 25),
+    UDim2.fromOffset(6, 94)
+)
+espButton.ZIndex = 4
 
 --==================================================
 -- ÁREA DE CONTEÚDO
