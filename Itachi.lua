@@ -1990,23 +1990,22 @@ local function ESPToggle(name, callback)
     end)
 
     return {
-        Button = button,
+    Button = button,
 
-        Get = function()
-            return enabled
-        end,
+    SetVisible = function(value)
+        button.Visible = value
+    end,
 
-        Set = function(value)
-            if enabled ~= value then
-                button:Activate()
-            end
-        end,
+    Get = function()
+        return enabled
+    end,
 
-        SetVisible = function(value)
-            button.Visible = value
+    Set = function(value)
+        if enabled ~= value then
+            button:Activate()
         end
-    }
-end
+    end
+}
 
 -- ESTADOS VISUAIS
 local ESPState = {
