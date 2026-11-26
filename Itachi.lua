@@ -2108,6 +2108,207 @@ end)
 
 -- FINAL
 print("ITACHI HUB | ESP PAGE CARREGADA")
+
+--==================================================
+-- ITACHI HUB | ESP MENU
+-- INTERFACE COM OPÇÕES EXPANSÍVEIS
+--==================================================
+
+local esp = CreatePage("ESP")
+
+local espTitle = Label(
+    esp,
+    "ESP VISUAL",
+    UDim2.new(1, -20, 0, 25),
+    UDim2.fromOffset(10, 8),
+    Enum.Font.GothamBold,
+    C.White
+)
+espTitle.ZIndex = 5
+espTitle.TextSize = 14
+
+-- ÁREA DE OPÇÕES
+local espArea = Instance.new("Frame")
+espArea.Name = "ESPOptionsArea"
+espArea.Size = UDim2.new(1, -16, 1, -42)
+espArea.Position = UDim2.fromOffset(8, 36)
+espArea.BackgroundColor3 = C.Card
+espArea.BackgroundTransparency = 0.88
+espArea.BorderSizePixel = 0
+espArea.ZIndex = 5
+espArea.Parent = esp
+
+Round(espArea, 8)
+Border(espArea, 0.85)
+
+local espScroll = Instance.new("ScrollingFrame")
+espScroll.Name = "ESPScroll"
+espScroll.Size = UDim2.new(1, -8, 1, -8)
+espScroll.Position = UDim2.fromOffset(4, 4)
+espScroll.BackgroundTransparency = 1
+espScroll.BorderSizePixel = 0
+espScroll.ScrollBarThickness = 2
+espScroll.ScrollBarImageColor3 = C.BrightRed
+espScroll.AutomaticCanvasSize = Enum.AutomaticSize.Y
+espScroll.CanvasSize = UDim2.new(0, 0, 0, 0)
+espScroll.ZIndex = 6
+espScroll.Parent = espArea
+
+local espList = Instance.new("UIListLayout")
+espList.Padding = UDim.new(0, 5)
+espList.SortOrder = Enum.SortOrder.LayoutOrder
+espList.Parent = espScroll
+
+-- FUNÇÃO DE BOTÃO
+local function ESPSection(name)
+    local label = Instance.new("TextLabel")
+    label.Size = UDim2.new(1, -8, 0, 23)
+    label.BackgroundTransparency = 1
+    label.Text = name
+    label.TextColor3 = C.BrightRed
+    label.TextSize = 11
+    label.Font = Enum.Font.GothamBold
+    label.TextXAlignment = Enum.TextXAlignment.Left
+    label.ZIndex = 7
+    label.Parent = espScroll
+    return label
+end
+
+-- VISUAL ALL
+ESPSection("CONTROLE GERAL")
+
+local espOptions = {}
+
+local visualAll = Toggle("Visual All", function(active)
+    for _, option in ipairs(espOptions) do
+        option.Set(active)
+    end
+end)
+
+-- ESP
+ESPSection("ESP")
+
+local espName, espLife, espLife3D, espDistance
+
+local espMaster = Toggle("ESP", function(active)
+    espName.SetVisible(active)
+    espLife.SetVisible(active)
+    espLife3D.SetVisible(active)
+    espDistance.SetVisible(active)
+end)
+
+espName = Toggle("Nome", function(active)
+end)
+
+espLife = Toggle("Vida", function(active)
+end)
+
+espLife3D = Toggle("Vida 3D", function(active)
+end)
+
+espDistance = Toggle("Distância", function(active)
+end)
+
+espName.SetVisible(false)
+espLife.SetVisible(false)
+espLife3D.SetVisible(false)
+espDistance.SetVisible(false)
+
+-- BOX
+ESPSection("BOX")
+
+local box2D, box3D, box3DV2, boxCorners
+
+local boxMaster = Toggle("Box", function(active)
+    box2D.SetVisible(active)
+    box3D.SetVisible(active)
+    box3DV2.SetVisible(active)
+    boxCorners.SetVisible(active)
+end)
+
+box2D = Toggle("Box 2D", function(active)
+end)
+
+box3D = Toggle("Box 3D", function(active)
+end)
+
+box3DV2 = Toggle("Box 3D V2", function(active)
+end)
+
+boxCorners = Toggle("Box 4 Quinas", function(active)
+end)
+
+box2D.SetVisible(false)
+box3D.SetVisible(false)
+box3DV2.SetVisible(false)
+boxCorners.SetVisible(false)
+
+-- ESQUELETO
+ESPSection("ESQUELETO")
+
+local skeletonOption
+
+local skeletonMaster = Toggle("Esqueleto", function(active)
+    skeletonOption.SetVisible(active)
+end)
+
+skeletonOption = Toggle("Mostrar Esqueleto", function(active)
+end)
+
+skeletonOption.SetVisible(false)
+
+-- LINE
+ESPSection("LINE")
+
+local lineOption
+
+local lineMaster = Toggle("Line", function(active)
+    lineOption.SetVisible(active)
+end)
+
+lineOption = Toggle("Mostrar Line", function(active)
+end)
+
+lineOption.SetVisible(false)
+
+-- RADAR
+ESPSection("RADAR")
+
+local radarOption
+
+local radarMaster = Toggle("Radar", function(active)
+    radarOption.SetVisible(active)
+end)
+
+radarOption = Toggle("Mostrar Radar", function(active)
+end)
+
+radarOption.SetVisible(false)
+
+-- ESP LEGIT
+ESPSection("MODO LEGIT")
+
+local espLegit = Toggle("ESP Legit", function(active)
+end)
+
+-- REGISTRO PARA VISUAL ALL
+local masters = {
+    espMaster,
+    boxMaster,
+    skeletonMaster,
+    lineMaster,
+    radarMaster,
+    espLegit
+}
+
+for _, option in ipairs(masters) do
+    table.insert(espOptions, {
+        Set = function(active)
+            option.Set(active)
+        end
+    })
+end
+
 --==================================================
 -- NAVEGAÇÃO
 --==================================================
