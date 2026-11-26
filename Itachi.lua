@@ -2189,6 +2189,289 @@ print("ITACHI HUB | ESP MENU CARREGADO!")
 
 
 --==================================================
+-- ITACHI HUB | ESP VISUAL SYSTEM
+-- ROBLOX STUDIO | LOCAL SCRIPT
+--==================================================
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+
+local LocalPlayer = Players.LocalPlayer
+local Camera = workspace.CurrentCamera
+
+-- AGUARDA O MENU ESP
+repeat
+    task.wait()
+until _G.ItachiESP and _G.ItachiESP.IsActive
+
+local ESP = _G.ItachiESP
+
+local Objects = {}
+
+--==================================================
+-- CRIAR ELEMENTOS
+--==================================================
+
+local function CreateESP(player)
+
+    if player == LocalPlayer then return end
+    if Objects[player] then return end
+
+    local data = {}
+
+    local function SetupCharacter(character)
+
+        if data.Billboard then
+            data.Billboard:Destroy()
+        end
+
+        if data.Highlight then
+            data.Highlight:Destroy()
+        end
+
+        local head = character:WaitForChild("Head", 5)
+        local humanoid = character:WaitForChild("Humanoid", 5)
+        local root = character:WaitForChild("HumanoidRootPart", 5)
+
+        if not head or not humanoid or not root then
+            return
+        end
+
+        -- BILLBOARD
+        local billboard = Instance.new("BillboardGui")
+        billboard.Name = "ItachiESP"
+        billboard.Adornee = head
+        billboard.Size = UDim2.fromOffset(180, 75)
+        billboard.StudsOffset = Vector3.new(0, 2.8, 0)
+        billboard.AlwaysOnTop = true
+        billboard.Enabled = false
+        billboard.Parent = LocalPlayer:WaitForChild("PlayerGui")
+
+        data.Billboard = billboard
+
+        -- NOME
+        local nameLabel = Instance.new("TextLabel")
+        nameLabel.Size = UDim2.new(1, 0, 0, 18)
+        nameLabel.Position = UDim2.fromOffset(0, 0)
+        nameLabel.BackgroundTransparency = 1
+        nameLabel.TextColor3 = Color3.new(1, 1, 1)
+        nameLabel.TextStrokeTransparency = 0.2
+        nameLabel.Font = Enum.Font.GothamBold
+        nameLabel.TextSize = 13
+        nameLabel.Parent = billboard
+
+        data.NameLabel = nameLabel
+
+        -- VIDA 3D
+        local healthText = Instance.new("TextLabel")
+        healthText.Size = UDim2.new(1, 0, 0, 16)
+        healthText.Position = UDim2.fromOffset(0, 18)
+        healthText.BackgroundTransparency = 1
+        healthText.TextColor3 = Color3.fromRGB(80, 255, 100)
+        healthText.TextStrokeTransparency = 0.2
+        healthText.Font = Enum.Font.GothamBold
+        healthText.TextSize = 11
+        healthText.Parent = billboard
+
+        data.HealthText = healthText
+
+        -- BARRA DE VIDA
+        local healthBack = Instance.new("Frame")
+        healthBack.Size = UDim2.new(0.85, 0, 0, 6)
+        healthBack.Position = UDim2.new(0.075, 0, 0, 37)
+        healthBack.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+        healthBack.BorderSizePixel = 0
+        healthBack.Parent = billboard
+
+        Instance.new("UICorner", healthBack).CornerRadius =
+            UDim.new(1, 0)
+
+        local healthFill = Instance.new("Frame")
+        healthFill.Size = UDim2.fromScale(1, 1)
+        healthFill.BackgroundColor3 = Color3.fromRGB(50, 255, 80)
+        healthFill.BorderSizePixel = 0
+        healthFill.Parent = healthBack
+
+        Instance.new("UICorner", healthFill).CornerRadius =
+            UDim.new(1, 0)
+
+        data.HealthBack = healthBack
+        data.HealthFill = healthFill
+
+        -- DISTÂNCIA
+        local distanceLabel = Instance.new("TextLabel")
+        distanceLabel.Size = UDim2.new(1, 0, 0, 17)
+        distanceLabel.Position = UDim2.fromOffset(0, 48)
+        distanceLabel.BackgroundTransparency = 1
+        distanceLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+        distanceLabel.TextStrokeTransparency = 0.2
+        distanceLabel.Font = Enum.Font.Gotham
+        distanceLabel.TextSize = 11
+        distanceLabel.Parent = billboard
+
+        data.DistanceLabel = distanceLabel
+
+        -- BOX 3D
+        local highlight = Instance.new("Highlight")
+        highlight.Name = "ItachiESPBox3D"
+        highlight.Adornee = character
+        highlight.FillTransparency = 1
+        highlight.OutlineTransparency = 0
+        highlight.OutlineColor = Color3.fromRGB(255, 0, 0)
+        highlight.DepthMode = Enum.HighlightDepthMode.Occluded
+        highlight.Enabled = false
+        highlight.Parent = character
+
+        data.Highlight = highlight
+        data.Character = character
+        data.Humanoid = humanoid
+        data.Root = root
+
+    end
+
+    data.CharacterConnection =
+        player.CharacterAdded:Connect(SetupCharacter)
+
+    if player.Character then
+        task.spawn(SetupCharacter, player.Character)
+    end
+
+    Objects[player] = data
+end
+
+--==================================================
+-- REMOVER ESP
+--==================================================
+
+local function RemoveESP(player)
+
+    local data = Objects[player]
+    if not data then return end
+
+    if data.CharacterConnection then
+        data.CharacterConnection:Disconnect()
+    end
+
+    if data.Billboard then
+        data.Billboard:Destroy()
+    end
+
+    if data.Highlight then
+        data.Highlight:Destroy()
+    end
+
+    Objects[player] = nil
+end
+
+--==================================================
+-- JOGADORES
+--==================================================
+
+for _, player in ipairs(Players:GetPlayers()) do
+    CreateESP(player)
+end
+
+Players.PlayerAdded:Connect(CreateESP)
+Players.PlayerRemoving:Connect(RemoveESP)
+
+--==================================================
+-- ATUALIZAÇÃO VISUAL
+--==================================================
+
+RunService.RenderStepped:Connect(function()
+
+    Camera = workspace.CurrentCamera
+    if not Camera then return end
+
+    local myCharacter = LocalPlayer.Character
+    local myRoot = myCharacter and
+        myCharacter:FindFirstChild("HumanoidRootPart")
+
+    for player, data in pairs(Objects) do
+
+        local character = data.Character
+        local humanoid = data.Humanoid
+        local root = data.Root
+
+        if not character or not character.Parent
+        or not humanoid or humanoid.Health <= 0
+        or not root or not root.Parent then
+
+            if data.Billboard then
+                data.Billboard.Enabled = false
+            end
+
+            if data.Highlight then
+                data.Highlight.Enabled = false
+            end
+
+            continue
+        end
+
+        -- ESTADOS DO MENU
+        local nameOn = ESP.IsActive("Name")
+        local healthOn = ESP.IsActive("Health")
+        local health3DOn = ESP.IsActive("Health3D")
+        local distanceOn = ESP.IsActive("Distance")
+        local box3DOn = ESP.IsActive("Box3D")
+
+        -- NOME
+        data.NameLabel.Visible = nameOn
+        data.NameLabel.Text = player.DisplayName
+
+        -- VIDA
+        data.HealthBack.Visible = healthOn
+
+        local healthPercent = math.clamp(
+            humanoid.Health / humanoid.MaxHealth,
+            0, 1
+        )
+
+        data.HealthFill.Size = UDim2.fromScale(
+            healthPercent, 1
+        )
+
+        data.HealthFill.BackgroundColor3 =
+            Color3.fromRGB(
+                255 * (1 - healthPercent),
+                255 * healthPercent,
+                60
+            )
+
+        -- VIDA 3D
+        data.HealthText.Visible = health3DOn
+
+        data.HealthText.Text = string.format(
+            "%d / %d HP",
+            humanoid.Health,
+            humanoid.MaxHealth
+        )
+
+        -- DISTÂNCIA
+        data.DistanceLabel.Visible = distanceOn
+
+        if myRoot then
+            local distance = (myRoot.Position - root.Position).Magnitude
+
+            data.DistanceLabel.Text =
+                math.floor(distance) .. " studs"
+        else
+            data.DistanceLabel.Text = ""
+        end
+
+        -- VISIBILIDADE DO BILLBOARD
+        data.Billboard.Enabled =
+            nameOn or healthOn or health3DOn or distanceOn
+
+        -- BOX 3D
+        data.Highlight.Enabled = box3DOn
+
+    end
+end)
+
+print("ITACHI HUB | ESP VISUAL CONECTADO!")
+
+--==================================================
 -- NAVEGAÇÃO
 --==================================================
 
