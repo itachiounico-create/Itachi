@@ -1908,9 +1908,10 @@ characterImage.ZIndex = 6
 characterImage.Parent = previewArea
 
 
+
 --==================================================
--- ITACHI HUB | ESP PAGE
--- SISTEMA VISUAL EXPANSIVEL
+-- ITACHI HUB | ESP SYSTEM
+-- MENU COM OPÇÕES EXPANSÍVEIS
 --==================================================
 
 local esp = CreatePage("ESP")
@@ -1926,8 +1927,7 @@ local espTitle = Label(
 espTitle.ZIndex = 5
 espTitle.TextSize = 14
 
--- AREA DE OPCOES
-
+-- ÁREA PRINCIPAL
 local espArea = Instance.new("Frame")
 espArea.Name = "ESPOptionsArea"
 espArea.Size = UDim2.new(1, -16, 1, -42)
@@ -1935,7 +1935,6 @@ espArea.Position = UDim2.fromOffset(8, 36)
 espArea.BackgroundColor3 = C.Card
 espArea.BackgroundTransparency = 0.88
 espArea.BorderSizePixel = 0
-espArea.ClipsDescendants = true
 espArea.ZIndex = 5
 espArea.Parent = esp
 
@@ -1960,11 +1959,10 @@ espList.Padding = UDim.new(0, 5)
 espList.SortOrder = Enum.SortOrder.LayoutOrder
 espList.Parent = espScroll
 
--- SECOES
-
+-- SEÇÕES
 local function ESPSection(name)
     local label = Instance.new("TextLabel")
-    label.Size = UDim2.new(1, -5, 0, 23)
+    label.Size = UDim2.new(1, -8, 0, 23)
     label.BackgroundTransparency = 1
     label.Text = name
     label.TextColor3 = C.BrightRed
@@ -1973,16 +1971,11 @@ local function ESPSection(name)
     label.TextXAlignment = Enum.TextXAlignment.Left
     label.ZIndex = 7
     label.Parent = espScroll
+
     return label
 end
 
--- REGISTRO DE CONTROLES
-
-local ESPControls = {}
-local ESPState = {}
-
--- TOGGLE ESP
-
+-- BOTÕES
 local function ESPToggle(name, callback)
     local button = Instance.new("TextButton")
     button.Size = UDim2.new(1, -5, 0, 29)
@@ -1993,7 +1986,6 @@ local function ESPToggle(name, callback)
     button.TextColor3 = C.White
     button.TextSize = 10
     button.Font = Enum.Font.GothamMedium
-    button.AutoButtonColor = false
     button.ZIndex = 7
     button.Parent = espScroll
 
@@ -2003,10 +1995,6 @@ local function ESPToggle(name, callback)
     local enabled = false
 
     local function Set(value)
-        if enabled == value then
-            return
-        end
-
         enabled = value
 
         button.Text = name ..
@@ -2027,11 +2015,11 @@ local function ESPToggle(name, callback)
     return {
         Button = button,
 
-        Set = Set,
-
         Get = function()
             return enabled
         end,
+
+        Set = Set,
 
         SetVisible = function(value)
             button.Visible = value
@@ -2039,48 +2027,70 @@ local function ESPToggle(name, callback)
     }
 end
 
--- CONTROLE DE VISUAL ALL
+--==================================================
+-- ESTADOS
+--==================================================
 
-ESPSection("SISTEMA VISUAL")
+local ESPState = {
+    All = false,
 
-local categories = {}
+    Name = false,
+    Health = false,
+    Health3D = false,
+    Distance = false,
 
-local visualAll = ESPToggle(
-    "VISUAL ALL",
-    function(active)
-        for _, category in ipairs(categories) do
-            category.Set(active)
-        end
-    end
-)
+    Box2D = false,
+    Box3D = false,
+    Box3DV2 = false,
+    BoxCorners = false,
 
-ESPControls.All = visualAll
+    Skeleton = false,
+    Line = false,
+    Radar = false,
+    Legit = false
+}
 
--- ESP
+local ESPControls = {}
+
+--==================================================
+-- ESP ALL | CHAVE GERAL
+--==================================================
+
+ESPSection("CONTROLE GERAL")
+
+ESPControls.All = ESPToggle("ESP ALL", function(active)
+    ESPState.All = active
+end)
+
+--==================================================
+-- ESP | INFORMAÇÕES
+--==================================================
 
 ESPSection("ESP")
 
 local espName
-local espLife
-local espLife3D
+local espHealth
+local espHealth3D
 local espDistance
 
-local espMaster = ESPToggle("ESP", function(active)
+ESPControls.MasterESP = ESPToggle("ESP", function(active)
+
     espName.SetVisible(active)
-    espLife.SetVisible(active)
-    espLife3D.SetVisible(active)
+    espHealth.SetVisible(active)
+    espHealth3D.SetVisible(active)
     espDistance.SetVisible(active)
+
 end)
 
 espName = ESPToggle("Nome", function(active)
     ESPState.Name = active
 end)
 
-espLife = ESPToggle("Vida", function(active)
+espHealth = ESPToggle("Vida", function(active)
     ESPState.Health = active
 end)
 
-espLife3D = ESPToggle("Vida 3D", function(active)
+espHealth3D = ESPToggle("Vida 3D", function(active)
     ESPState.Health3D = active
 end)
 
@@ -2089,13 +2099,13 @@ espDistance = ESPToggle("Distância", function(active)
 end)
 
 espName.SetVisible(false)
-espLife.SetVisible(false)
-espLife3D.SetVisible(false)
+espHealth.SetVisible(false)
+espHealth3D.SetVisible(false)
 espDistance.SetVisible(false)
 
-table.insert(categories, espMaster)
-
+--==================================================
 -- BOX
+--==================================================
 
 ESPSection("BOX")
 
@@ -2104,15 +2114,17 @@ local box3D
 local box3DV2
 local boxCorners
 
-local boxMaster = ESPToggle("BOX", function(active)
+ESPControls.MasterBox = ESPToggle("BOX", function(active)
+
     box2D.SetVisible(active)
     box3D.SetVisible(active)
     box3DV2.SetVisible(active)
     boxCorners.SetVisible(active)
+
 end)
 
 box2D = ESPToggle("Box 2D", function(active)
-    ESPState.Box = active
+    ESPState.Box2D = active
 end)
 
 box3D = ESPToggle("Box 3D", function(active)
@@ -2132,75 +2144,48 @@ box3D.SetVisible(false)
 box3DV2.SetVisible(false)
 boxCorners.SetVisible(false)
 
-table.insert(categories, boxMaster)
+--==================================================
+-- OUTROS | ATIVAÇÃO ÚNICA
+--==================================================
 
--- ESQUELETO
+ESPSection("OUTROS")
 
-ESPSection("ESQUELETO")
-
-local skeletonOption
-
-local skeletonMaster = ESPToggle("Esqueleto", function(active)
-    skeletonOption.SetVisible(active)
-end)
-
-skeletonOption = ESPToggle("Mostrar Esqueleto", function(active)
+ESPControls.Skeleton = ESPToggle("Esqueleto", function(active)
     ESPState.Skeleton = active
 end)
 
-skeletonOption.SetVisible(false)
-
-table.insert(categories, skeletonMaster)
-
--- LINE
-
-ESPSection("LINE")
-
-local lineOption
-
-local lineMaster = ESPToggle("Line", function(active)
-    lineOption.SetVisible(active)
-end)
-
-lineOption = ESPToggle("Mostrar Line", function(active)
+ESPControls.Line = ESPToggle("Line", function(active)
     ESPState.Line = active
 end)
 
-lineOption.SetVisible(false)
-
-table.insert(categories, lineMaster)
-
--- RADAR
-
-ESPSection("RADAR")
-
-local radarOption
-
-local radarMaster = ESPToggle("Radar", function(active)
-    radarOption.SetVisible(active)
-end)
-
-radarOption = ESPToggle("Mostrar Radar", function(active)
+ESPControls.Radar = ESPToggle("Radar", function(active)
     ESPState.Radar = active
 end)
 
-radarOption.SetVisible(false)
-
-table.insert(categories, radarMaster)
-
--- ESP LEGIT
+--==================================================
+-- MODO LEGIT
+--==================================================
 
 ESPSection("MODO LEGIT")
 
-local legitMaster = ESPToggle("ESP Legit", function(active)
+ESPControls.Legit = ESPToggle("ESP Legit", function(active)
     ESPState.Legit = active
 end)
 
-table.insert(categories, legitMaster)
+--==================================================
+-- ESTADO FINAL
+--==================================================
 
--- FINAL
+_G.ItachiESP = {
+    State = ESPState,
+    Controls = ESPControls,
 
-print("ITACHI HUB | ESP PAGE CARREGADA")
+    IsActive = function(name)
+        return ESPState.All and ESPState[name] == true
+    end
+}
+
+print("ITACHI HUB | ESP MENU CARREGADO!")
 
 
 --==================================================
